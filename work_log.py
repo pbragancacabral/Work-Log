@@ -1,10 +1,13 @@
 import csv
 import datetime
 import os
+import re
 
 from task import Task
 
 FILE = "log.csv"
+
+tasks = []
 
 
 def clear_screen():
@@ -44,7 +47,16 @@ def show_entries_menu():
     return input("Please select an option: ")
 
 
+def load_tasks():
+    with open(FILE, newline='') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=",")
+        rows = list(reader)
+        for row in rows:
+            tasks.append(row)
+
+
 def run():
+    load_tasks()
     choice = show_main_menu()
     if choice == "1":
         entry = show_entry_menu()
@@ -66,13 +78,24 @@ def run():
             date_to_search = input("Enter the date to search with format dd/mm/yyyy: ")
             day, month, year = date_to_search.split("/")
             fmt_date_to_search = f"{year}-{month}-{day}"
-            with open(FILE, newline='') as csvfile:
-                reader = csv.DictReader(csvfile, delimiter=",")
-                rows = list(reader)
-                for row in rows[1:]:
-                    if row["date"] == fmt_date_to_search:
-                        print(row)
-
+            for task in tasks:
+                if task["date"] == fmt_date_to_search:
+                    print(task)
+        if choice == "2":
+            time_spent = input("Enter the time spent on the task in minutes: ")
+            for task in tasks:
+                if task["minutes"] == time_spent:
+                    print(task)
+        if choice == "3":
+            exact_match = input("Enter a string to search in the task name/notes: ")
+            for task in tasks:
+                if exact_match.lower() in task["title"].lower() or exact_match.lower() in task["notes"].lower():
+                    print(task)
+        if choice == "4":
+            regex = input("Enter a regex to search in the task name/notes: ")
+            for task in tasks:
+                if re.search(regex, task["title"], re.I) is not None:
+                    print(task)
         if choice == "5":
             show_main_menu()
     elif choice == "3":
